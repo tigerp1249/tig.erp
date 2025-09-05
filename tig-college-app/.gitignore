@@ -1,0 +1,10 @@
+node_modules
+.pnpm-store
+dist
+.env
+.env.*
+apps/**/.env
+apps/**/node_modules
+apps/web/.vite
+apps/ml-service/.venv
+__pycache__/
