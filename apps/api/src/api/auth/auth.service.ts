@@ -3,12 +3,11 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
-// In a real app, you would use a library to generate a random 6-digit number.
 const generateOtp = () => '123456'; 
 
 /**
- * Step 1 of Login: Finds a user by email, generates an OTP, and saves it.
- * @param email The email address provided by the user.
+ * 
+ * @param email 
  */
 export async function sendLoginOtp(email: string) {
     const userResult = await prisma.$queryRaw<any[]>`CALL GetUserDetails(${email})`;
@@ -20,10 +19,8 @@ export async function sendLoginOtp(email: string) {
     const user = userResult[0][0];
     const otp = generateOtp();
 
-    // Use the existing procedure from tig_master.sql to save the OTP
     await prisma.$executeRaw`CALL UpdateLoginMaster(${user.EmployeeMasterID}, ${otp}, NOW() + INTERVAL 10 MINUTE, 0)`;
 
-    // In a real application, you would add a service here to email or SMS the OTP.
     console.log(`OTP for user ${user.EmployeeMasterID} is: ${otp}`); // For testing purposes
 
     return { message: `OTP sent successfully to ${email}.` };

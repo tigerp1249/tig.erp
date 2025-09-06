@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { sendLoginOtp, verifyLoginOtp } from "./auth.service"; // ✅ FIXED
+import { sendLoginOtp, verifyLoginOtp } from "./auth.service"; 
 
-// Extend the Express Request type to include the user payload from the JWT
 export interface AuthenticatedRequest extends Request {
   user?: {
     sub: number;
@@ -11,9 +10,9 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-/**
- * Middleware to verify JWT token from the Authorization header.
- */
+
+//* Middleware to verify JWT token from the Authorization header.
+ 
 export function protect(
   req: AuthenticatedRequest,
   res: Response,
@@ -40,7 +39,7 @@ export function protect(
   }
 }
 
-/**
+/** 
  * Middleware factory to restrict access to specific roles.
  * Example usage: authorize('Admin', 'HOD')
  */
