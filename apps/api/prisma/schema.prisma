@@ -1,10 +1,772 @@
-model StudentNote {
-  id        String        @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime      @default(now())
+generator client {
+  provider = "prisma-client-js"
+}
 
- 
-  student   StudentMaster @relation(fields: [studentId], references: [id])
-  studentId String
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ProfileUpdateApproval {
+  ID                 Int            @id @default(autoincrement())
+  CreatedAt          DateTime       @default(now())
+  UpdatedAt          DateTime       @updatedAt
+  Field              String
+  OldValue           String
+  NewValue           String
+  Status             ApprovalStatus @default(PENDING)
+  EMPLOYEE_MASTER_ID Int
+  ProcessedBy        String?
+  ProcessedAt        DateTime?
+}
+
+model ADDRESS_MASTER {
+  ID            Int      @id @default(autoincrement())
+  PINCode       Int
+  District      String   @db.VarChar(100)
+  State         String   @db.VarChar(100)
+  Country       String   @db.VarChar(100)
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+model ADMIN_MASTER {
+  ID                 Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID  Int?
+  Position           String   @db.VarChar(255)
+  EmailAddress       String   @db.VarChar(255)
+  EMPLOYEE_MASTER_ID Int?
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([COLLEGE_MASTER_ID, Position], map: "admnmstr_unique")
+  @@index([EMPLOYEE_MASTER_ID], map: "admnmstr_employee_mastre_id")
+}
+
+model CLASS_ATTENDANCE {
+  ID                BigInt    @id
+  AttendanceDate    DateTime  @db.Date
+  FACULTY_MASTER_ID Int
+  CLASS_ID          Int
+  SUBJECT_MASTER_ID Int
+  Credit            Int
+  TakenAt           DateTime  @db.DateTime(0)
+  StartedAt         DateTime? @db.DateTime(0)
+  MLDuration        Int?
+  InvalidSession    Boolean   @default(false)
+  LastUpdatedBy     String    @db.VarChar(50)
+  LastUpdatedAt     DateTime  @db.DateTime(0)
+
+  @@index([AttendanceDate], map: "ca_attendance_date")
+  @@index([AttendanceDate, FACULTY_MASTER_ID], map: "ca_attendance_date_faculty")
+  @@index([CLASS_ID], map: "ca_class_id_foreign")
+  @@index([FACULTY_MASTER_ID], map: "ca_faculty_master_foreign")
+  @@index([SUBJECT_MASTER_ID], map: "ca_subject_master_id_foreign")
+}
+
+model CLASS_ROOM_MASTER {
+  ID                 Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID  Int
+  COURSE_MASTER_ID   Int
+  STREAM_MASTER_ID   Int
+  SEMESTER_MASTER_ID Int
+  SESSION_MASTER_ID  Int
+  ClassId            Int
+  ClassName          String   @db.VarChar(200)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@index([COLLEGE_MASTER_ID], map: "crm_college_master_id")
+  @@index([ClassId], map: "crm_combinationid")
+  @@index([COURSE_MASTER_ID], map: "crm_course_master_id")
+  @@index([SEMESTER_MASTER_ID], map: "crm_semester_master_id")
+  @@index([SESSION_MASTER_ID], map: "crm_session_master_id")
+  @@index([STREAM_MASTER_ID], map: "crm_stream_master_id")
+}
+
+model COLLEGE_MASTER {
+  ID                Int      @id @default(autoincrement())
+  Name              String   @unique(map: "college_master_name_unique") @db.VarChar(50)
+  FullName          String   @db.VarChar(255)
+  ADDRESS_MASTER_ID Int
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([ADDRESS_MASTER_ID], map: "college_master_address_master_id_foreign")
+}
+
+model CONSUMER_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @db.VarChar(255)
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+model COURSE_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @db.VarChar(255)
+  Duration      Int
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+model DEPARTMENT_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @db.VarChar(20)
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model EMPLOYEE_ACCOLADE {
+  EMPLOYEE_MASTER_ID Int
+  AccoladeName       String   @db.VarChar(500)
+  AccoladeBy         String   @db.VarChar(500)
+  AccoladeDate       DateTime @db.Date
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@index([EMPLOYEE_MASTER_ID], map: "empacld_employee_master_id")
+  @@ignore
+}
+
+model EMPLOYEE_ASSOCIATION {
+  ID                   Int       @id @default(autoincrement())
+  EMPLOYEE_MASTER_ID   Int
+  COLLEGE_MASTER_ID    Int
+  DEPARTMENT_MASTER_ID Int
+  STREAM_MASTER_ID     Int?
+  AppointmentType      String?   @db.VarChar(10)
+  ContractType         String?   @db.VarChar(50)
+  Designation          String?   @db.VarChar(100)
+  DateOfJoining        DateTime? @db.Date
+  DateOfRelease        DateTime? @db.Date
+  EmailAddress         String?   @db.VarChar(255)
+  MANAGER_EMPLOYEE_ID  Int?
+  LastUpdatedBy        String    @db.VarChar(50)
+  LastUpdatedAt        DateTime  @db.DateTime(0)
+
+  @@index([COLLEGE_MASTER_ID], map: "empasct_college_master_id")
+  @@index([DEPARTMENT_MASTER_ID], map: "empasct_department_master_id")
+  @@index([EMPLOYEE_MASTER_ID], map: "empasct_employee_master_id")
+  @@index([MANAGER_EMPLOYEE_ID], map: "empasct_manager_employee_master_id")
+  @@index([STREAM_MASTER_ID], map: "empasct_stream_master_id")
+}
+
+model EMPLOYEE_EDUCATION {
+  ID                 Int      @id @default(autoincrement())
+  EMPLOYEE_MASTER_ID Int
+  CertificateName    String   @db.VarChar(500)
+  InstituteName      String   @db.VarChar(500)
+  BoardName          String   @db.VarChar(500)
+  YearOfPassing      Int      @db.Year
+  MarksObtained      Decimal  @db.Decimal(10, 0)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@index([EMPLOYEE_MASTER_ID], map: "empedu_employee_master_id")
+}
+
+model EMPLOYEE_EXPERIENCE {
+  ID                 Int      @id @default(autoincrement())
+  EMPLOYEE_MASTER_ID Int
+  OrganizationName   String   @db.VarChar(500)
+  StartDate          DateTime @db.Date
+  EndDate            DateTime @db.Date
+  Designation        String   @db.VarChar(255)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@index([EMPLOYEE_MASTER_ID], map: "empexp_employee_master_id")
+}
+
+model EMPLOYEE_LEAVE {
+  ID                     Int       @id @default(autoincrement())
+  EMPLOYEE_MASTER_ID     Int
+  CL                     Int       @default(0)
+  EL                     Int       @default(0)
+  ML                     Int       @default(0)
+  ExceptionForAttendance Boolean   @default(false)
+  ExceptionStartDate     DateTime? @db.Date
+  ExceptionEndDate       DateTime? @db.Date
+  LastUpdatedBy          String    @db.VarChar(50)
+  LastUpdatedAt          DateTime  @db.DateTime(0)
+
+  @@index([EMPLOYEE_MASTER_ID], map: "emplv_employee_master_id")
+}
+
+model EMPLOYEE_MASTER {
+  ID                  Int                   @id @default(autoincrement())
+  EID                 String?               @unique(map: "eid_unique") @db.VarChar(50)
+  TIGID               String?               @unique(map: "tigid_unique") @db.VarChar(50)
+  Salutation          String?               @db.VarChar(10)
+  FirstName           String                @db.VarChar(255)
+  MiddleName          String?               @db.VarChar(255)
+  LastName            String?               @db.VarChar(255)
+  MobileNumber        String?               @unique(map: "mobile_unique") @db.Char(10)
+  EmailAddress        String?               @unique(map: "email_unique") @db.VarChar(255)
+  ADDRESS_MASTER_ID   Int?
+  AddressDescription  String?               @db.Text
+  DateOfBirth         DateTime?             @db.Date
+  AadharNumber        BigInt?
+  PANNumber           String?               @db.VarChar(20)
+  WhatsappNumber      String?               @db.Char(10)
+  LastUpdatedBy       String                @db.VarChar(50)
+  LastUpdatedAt       DateTime              @db.DateTime(0)
+  EMPLOYEE_ATTENDANCE EMPLOYEE_ATTENDANCE[]
+
+  @@index([ADDRESS_MASTER_ID], map: "empmstr_address_master_id")
+}
+
+model FACULTY_CLASS_ATTENDANCE_SUMMARY {
+  COLLEGE_MASTER_ID    Int
+  COURSE_MASTER_ID     Int
+  STREAM_MASTER_ID     Int
+  SESSION_MASTER_ID    Int
+  SEMESTER_MASTER_ID   Int
+  CLASS_ID             Int
+  SUBJECT_MASTER_ID    Int
+  AttendancePercentage Decimal  @db.Decimal(10, 2)
+  LastUpdatedBy        String   @db.VarChar(50)
+  LastUpdatedAt        DateTime @db.DateTime(0)
+
+  @@unique([COLLEGE_MASTER_ID, COURSE_MASTER_ID, STREAM_MASTER_ID, SEMESTER_MASTER_ID, SESSION_MASTER_ID, CLASS_ID, SUBJECT_MASTER_ID], map: "cas_unique")
+  @@index([CLASS_ID], map: "cas_class_id")
+  @@index([COURSE_MASTER_ID], map: "cas_course_master_id")
+  @@index([SEMESTER_MASTER_ID], map: "cas_semester_master_id")
+  @@index([SESSION_MASTER_ID], map: "cas_session_master_id")
+  @@index([STREAM_MASTER_ID], map: "cas_stream_master_id")
+  @@index([SUBJECT_MASTER_ID], map: "cas_subject_master_id")
+}
+
+model FACULTY_CLASS_PROFILE {
+  EMPLOYEE_MASTER_ID Int
+  ProfileName        String   @db.VarChar(500)
+  CLASS_ID           Int
+  SUBJECT_MASTER_ID  Int
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([EMPLOYEE_MASTER_ID, CLASS_ID, SUBJECT_MASTER_ID], map: "fap_unique")
+  @@index([CLASS_ID], map: "fcp_class_id")
+  @@index([SUBJECT_MASTER_ID], map: "fcp_subject_master_id")
+}
+
+model HOD_MASTER {
+  ID                 Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID  Int
+  STREAM_MASTER_ID   Int
+  Position           String   @db.VarChar(255)
+  EmailAddress       String   @db.VarChar(255)
+  EMPLOYEE_MASTER_ID Int?
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([COLLEGE_MASTER_ID, STREAM_MASTER_ID, Position], map: "hm_unique")
+  @@index([EMPLOYEE_MASTER_ID], map: "hm_employee_master_id")
+  @@index([STREAM_MASTER_ID], map: "hm_stream_master_id")
+}
+
+model LESSON_PLAN_COVERED {
+  CLASS_ATTENDANCE_ID   BigInt
+  LESSON_PLAN_MASTER_ID Int
+  LastUpdatedBy         String   @db.VarChar(50)
+  LastUpdatedAt         DateTime @db.DateTime(0)
+
+  @@unique([CLASS_ATTENDANCE_ID, LESSON_PLAN_MASTER_ID], map: "lpc_unique")
+  @@index([CLASS_ATTENDANCE_ID], map: "lpc_class_attendance_id")
+  @@index([LESSON_PLAN_MASTER_ID], map: "lpc_lesson_plan_master_id")
+}
+
+model LESSON_PLAN_MASTER {
+  ID                   Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID    Int
+  SUBJECT_MASTER_ID    Int
+  LectureNo            Int
+  UnitNo               String   @db.VarChar(100)
+  TopicNo              String   @db.VarChar(100)
+  Topic                String   @db.Text
+  UPLOADED_BY_EMPLOYEE Int?
+  Manual               Boolean  @default(false)
+  LastUpdatedBy        String   @db.VarChar(50)
+  LastUpdatedAt        DateTime @db.DateTime(0)
+
+  @@index([SUBJECT_MASTER_ID], map: "lpm_subject_master_id")
+  @@index([COLLEGE_MASTER_ID, SUBJECT_MASTER_ID, LectureNo, UnitNo, TopicNo], map: "lpm_unique")
+  @@index([UPLOADED_BY_EMPLOYEE], map: "lpm_upload_by_employee")
+}
+
+model LOGIN_MASTER {
+  MASTER_ID     Int       @unique(map: "lm_unique")
+  OTP           String?   @db.Char(6)
+  Expiry        DateTime? @db.DateTime(0)
+  Verified      Boolean   @default(false)
+  LastUpdatedBy String    @db.VarChar(50)
+  LastUpdatedAt DateTime  @db.DateTime(0)
+}
+
+model MAKAUT_COURSE_STREAM {
+  ID               Int      @id @default(autoincrement())
+  COURSE_MASTER_ID Int
+  STREAM_MASTER_ID Int
+  Code             String   @db.VarChar(5)
+  LastUpdatedBy    String   @db.VarChar(50)
+  LastUpdatedAt    DateTime @db.DateTime(0)
+
+  @@unique([COURSE_MASTER_ID, STREAM_MASTER_ID, Code], map: "mcs_unique")
+  @@index([STREAM_MASTER_ID], map: "mcs_stream_master_id")
+}
+
+model MAKAUT_MASTER {
+  ID                Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID Int
+  Name              String   @db.VarChar(500)
+  UserId            String   @db.VarChar(255)
+  Password          String   @db.VarChar(255)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([COLLEGE_MASTER_ID], map: "makaut_college_foreign")
+}
+
+model OUTBOUND_EMAIL_MASTER {
+  ID                Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID Int
+  Name              String   @db.VarChar(500)
+  UserId            String   @db.VarChar(255)
+  Password          String   @db.VarChar(255)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([COLLEGE_MASTER_ID], map: "makaut_college_foreign")
+}
+
+model POLICY_ACCEPTANCE {
+  ID                 Int      @id @default(autoincrement())
+  STUDENT_MASTER_ID  Int?     @unique(map: "plcacp_student_master_id")
+  EMPLOYEE_MASTER_ID Int?     @unique(map: "plcacp_employee_master_id")
+  Accepted           String   @db.Char(1)
+  DateTimestamp      DateTime @db.DateTime(0)
+  AppVersion         String   @db.VarChar(10)
+  PolicyVersion      String   @db.VarChar(10)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+}
+
+model REPORT_EMAIL_COSUMER {
+  ID                 Int      @id @default(autoincrement())
+  REPORT_MASTER_ID   Int
+  CONSUMER_MASTER_ID Int
+  Name               String   @db.VarChar(255)
+  From               Int
+  To                 Int
+  CC                 Int?
+  BCC                Int?
+  ReplyTo            String?  @db.VarChar(255)
+  DepartmentControl  Int      @default(1) @db.TinyInt
+  SingleMail         String?  @db.VarChar(255)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@index([BCC], map: "rec_bcc")
+  @@index([CC], map: "rec_cc")
+  @@index([CONSUMER_MASTER_ID], map: "rec_consumer_master_id")
+  @@index([From], map: "rec_from")
+  @@index([REPORT_MASTER_ID], map: "rec_report_master_id")
+  @@index([To], map: "rec_to")
+}
+
+model REPORT_MASTER {
+  ID                Int      @id @default(autoincrement())
+  Name              String   @db.VarChar(255)
+  COLLEGE_MASTER_ID Int
+  FileToRun         String?  @db.VarChar(500)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([COLLEGE_MASTER_ID], map: "report_master_college_master_foreign")
+}
+
+model REPORT_SETTINGS {
+  REPORT_MASTER_ID Int
+  SettingsName     String   @db.VarChar(255)
+  SettingsValue    String   @db.VarChar(255)
+  LastUpdatedBy    String   @db.VarChar(50)
+  LastUpdatedAt    DateTime @db.DateTime(0)
+
+  @@unique([REPORT_MASTER_ID, SettingsName], map: "rprtstngs_unique")
+  @@index([REPORT_MASTER_ID], map: "rprtstngs_report_master_id")
+}
+
+model REPORT_UI_COSUMER {
+  ID                 Int      @id @default(autoincrement())
+  REPORT_MASTER_ID   Int
+  CONSUMER_MASTER_ID Int
+  Name               String   @db.VarChar(255)
+  ROLE_MASTER_ID     Int
+  DepartmentControl  Boolean  @default(true)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([REPORT_MASTER_ID, ROLE_MASTER_ID], map: "UNIQUE")
+  @@index([REPORT_MASTER_ID], map: "rprtui_report_master_id")
+  @@index([CONSUMER_MASTER_ID], map: "rui_consumer_master_foreign")
+  @@index([ROLE_MASTER_ID], map: "rui_group_master_forign")
+}
+
+model RESOURCE_CONSUMER {
+  ID                 Int      @id @default(autoincrement())
+  RESOURCE_MASTER_ID Int
+  ROLE_MASTER_ID     Int
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([RESOURCE_MASTER_ID, ROLE_MASTER_ID], map: "UNIQUE")
+  @@index([ROLE_MASTER_ID], map: "rsrccnsmr_role_master_id")
+}
+
+model RESOURCE_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Type          String   @db.VarChar(50)
+  Name          String   @db.VarChar(50)
+  Parent        Int?
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+
+  @@index([Parent], map: "self_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model RESULT_ANALYSIS {
+  SESSION_MASTER_ID Int
+  SUBJECT_MASTER_ID Int
+  ResultType        String   @db.VarChar(50)
+  Grade             String   @db.Char(1)
+  Count             Int
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([SESSION_MASTER_ID, SUBJECT_MASTER_ID, ResultType, Grade], map: "ra_unique")
+  @@index([SUBJECT_MASTER_ID], map: "rsltanls_subject_master_id")
+}
+
+model ROLE_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @unique(map: "UNIQUE") @db.VarChar(50)
+  LastUpdatedBy String   @default("dbadmin") @db.VarChar(50)
+  LastUpdatedAt DateTime @default(now()) @db.DateTime(0)
+}
+
+model SCHEDULED_TASKS {
+  ID                Int      @id @default(autoincrement())
+  TASK_SCHEDULER_ID Int
+  TimeToRun         DateTime @db.DateTime(0)
+  Status            String   @db.VarChar(255)
+  Error             String?  @db.Text
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([TASK_SCHEDULER_ID], map: "schltsk_task_scheduler_id")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model SCHEDULED_TASK_PROGRESS {
+  SCHEDULED_TASK_ID Int
+  Reference         String   @db.VarChar(255)
+  Completed         Boolean
+  Progress          Decimal  @default(0.00) @db.Decimal(10, 2)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([SCHEDULED_TASK_ID], map: "stp_scheduled_task_id")
+  @@ignore
+}
+
+model SCRIPT_EVALUATION {
+  ID                    Int      @id @default(autoincrement())
+  SESSION_MASTER_ID     Int
+  ScrapeDate            DateTime @db.Date
+  EMPLOYEE_MASTER_ID    Int
+  Mobile                String   @db.Char(10)
+  Subject               String   @db.VarChar(500)
+  TotalScript           Int
+  OverallDone           Int
+  OverallPending        Int
+  AssignedDate          DateTime @db.Date
+  MaxAllotmentToFaculty Int
+  DoneByFaculty         Int
+  AdditionalScript      Int
+  BlockStatus           String   @db.VarChar(255)
+  Active                Boolean  @default(true)
+  CollegeProduced       Int      @default(0)
+  CollegeEvaluated      Int      @default(0)
+  LastUpdatedBy         String   @db.VarChar(50)
+  LastUpdatedAt         DateTime @db.DateTime(0)
+
+  @@unique([ScrapeDate, EMPLOYEE_MASTER_ID, Subject, SESSION_MASTER_ID], map: "UNIQUE")
+  @@index([EMPLOYEE_MASTER_ID], map: "scrptev_employee_master_id")
+  @@index([SESSION_MASTER_ID], map: "scrptev_session_master_id")
+}
+
+model SEMESTER_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @unique(map: "semester_master_name_unique") @db.VarChar(10)
+  Group         String   @db.VarChar(5)
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+model SESSION_MASTER {
+  ID                Int      @id @default(autoincrement())
+  COLLEGE_MASTER_ID Int
+  Session           String   @db.Char(7)
+  FullSession       String   @db.Char(9)
+  SemesterGroup     String   @db.VarChar(10)
+  SessionStart      DateTime @db.Date
+  SessionEnd        DateTime @db.Date
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([COLLEGE_MASTER_ID, Session, SemesterGroup], map: "ssnmstr_unique")
+}
+
+model STREAM_MASTER {
+  ID            Int      @id @default(autoincrement())
+  Name          String   @unique(map: "stream_master_name_unique") @db.VarChar(20)
+  FullName      String   @db.VarChar(255)
+  LastUpdatedBy String   @db.VarChar(50)
+  LastUpdatedAt DateTime @db.DateTime(0)
+}
+
+model STUDENT_BIOMETRIC {
+  STUDENT_MASTER_ID Int      @unique(map: "sb_unique")
+  FaceParams        String   @db.Text
+  DateOfScan        DateTime @db.DateTime(0)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model STUDENT_CLASS_ATTENDANCE {
+  CLASS_ATTENDANCE_ID BigInt
+  STUDENT_MASTER_ID   Int
+  Present             Boolean   @default(false)
+  AttendanceTimestamp DateTime? @db.DateTime(0)
+  Status              String    @default("Absent") @db.VarChar(50)
+  UpdatedBy           String    @default("Biometric") @db.VarChar(50)
+  Remarks             String?   @db.VarChar(500)
+  BiometricMatch      Decimal?  @default(0.00000) @db.Decimal(10, 5)
+  Source              String?   @default("L1") @db.VarChar(500)
+  Top                 Decimal?  @default(0.00000) @db.Decimal(10, 5)
+  Bottom              Decimal?  @default(0.00000) @db.Decimal(10, 5)
+  Left                Decimal?  @default(0.00000) @db.Decimal(10, 5)
+  Right               Decimal?  @default(0.00000) @db.Decimal(10, 5)
+  LastUpdatedBy       String    @default("sp") @db.VarChar(50)
+  LastUpdatedAt       DateTime  @default(now()) @db.DateTime(0)
+
+  @@unique([CLASS_ATTENDANCE_ID, STUDENT_MASTER_ID], map: "sca_unique")
+  @@index([STUDENT_MASTER_ID], map: "sca_student_master_id")
+}
+
+model STUDENT_CLASS_ATTENDANCE_SUMMARY {
+  STUDENT_MASTER_ID    Int
+  PercentageType       String   @db.VarChar(50)
+  RELATED_ID           Int
+  AttendancePercentage Decimal  @db.Decimal(10, 2)
+  LastUpdatedBy        String   @db.VarChar(50)
+  LastUpdatedAt        DateTime @db.DateTime(0)
+
+  @@unique([STUDENT_MASTER_ID, PercentageType, RELATED_ID], map: "scas_unique")
+}
+
+model STUDENT_CLASS_ROOM {
+  STUDENT_MASTER_ID Int
+  CLASS_MASTER_ID   Int
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([STUDENT_MASTER_ID, CLASS_MASTER_ID], map: "scr_unique")
+  @@index([CLASS_MASTER_ID], map: "scr_class_master_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model STUDENT_EDUCATION {
+  STUDENT_MASTER_ID Int
+  TypeOfScore       String   @db.Char(2)
+  ExamName          String   @db.VarChar(100)
+  Board             String?  @db.VarChar(255)
+  InstituteName     String?  @db.VarChar(255)
+  InstitutePlace    String?  @db.VarChar(500)
+  Percentage        Float?
+  Grade             String?  @db.Char(1)
+  Score             Int?
+  Rank              Int?
+  YearOfPassing     Int      @db.Year
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([STUDENT_MASTER_ID, TypeOfScore], map: "se_unique")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model STUDENT_MARKS {
+  SESSION_MASTER_ID Int
+  StudentRoll       BigInt
+  StudentName       String   @db.VarChar(255)
+  MAKAUT_COURSE_ID  Int
+  SUBJECT_MASTER_ID Int
+  MarksType         String   @default("Regular") @db.VarChar(20)
+  Marks             Decimal  @db.Decimal(10, 5)
+  Grade             String   @db.Char(1)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([StudentRoll, SESSION_MASTER_ID, SUBJECT_MASTER_ID, MarksType], map: "sdntmrks_unique")
+  @@index([MAKAUT_COURSE_ID], map: "sdntmrks_makaut_course_id")
+  @@index([SESSION_MASTER_ID], map: "sdntmrks_session_master_id")
+  @@index([SUBJECT_MASTER_ID], map: "sdntmrks_subject_master_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model STUDENT_MASTER {
+  ID                    Int       @id @default(autoincrement())
+  SID                   String    @unique(map: "sm_sid_unique") @db.VarChar(50)
+  Name                  String    @db.VarChar(255)
+  MobileNumber          String?   @db.Char(10)
+  EmailAddress          String?   @db.VarChar(255)
+  AadharNumber          BigInt?
+  Gender                String?   @db.Char(1)
+  DOB                   DateTime? @db.Date
+  RegistrationNumber    String?   @db.VarChar(100)
+  RollNumber            BigInt?
+  FeeCategory           String?   @db.Char(1)
+  Caste                 String?   @db.VarChar(10)
+  Religion              String?   @db.VarChar(10)
+  CommunicationLanguage String?   @db.VarChar(20)
+  BloodGroup            String?   @db.VarChar(20)
+  AddressDescription    String?   @db.Text
+  PoliceStation         String?   @db.VarChar(255)
+  ADDRESS_MASTER_ID     Int?
+  InstituteEmail        String?   @db.VarChar(255)
+  AdmissionDate         DateTime  @db.Date
+  ADMISSION_SEMESTER    Int
+  COLLEGE_MASTER_ID     Int
+  COURSE_MASTER_ID      Int
+  STREAM_MASTER_ID      Int
+  CURRENT_SEMESTER      Int
+  Status                String    @db.Char(1)
+  LastUpdatedBy         String    @db.VarChar(50)
+  LastUpdatedAt         DateTime  @db.DateTime(0)
+
+  @@index([ADDRESS_MASTER_ID], map: "sm_address_master_id")
+  @@index([ADMISSION_SEMESTER], map: "sm_admission_semester")
+  @@index([COLLEGE_MASTER_ID], map: "sm_college_master_id")
+  @@index([COURSE_MASTER_ID], map: "sm_course_master_id")
+  @@index([CURRENT_SEMESTER], map: "sm_current_semester")
+  @@index([RegistrationNumber], map: "sm_registrationnumber_unique")
+  @@index([RollNumber], map: "sm_rollnumber_unique")
+  @@index([STREAM_MASTER_ID], map: "sm_stream_master_id")
+  @@index([EmailAddress], map: "student_master_email_unique")
+  @@index([InstituteEmail], map: "student_master_institute_email_unique")
+  @@index([MobileNumber], map: "student_master_mobile_unique")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model STUDENT_PARENT {
+  STUDENT_MASTER_ID Int
+  ParentType        String   @db.Char(1)
+  Name              String   @db.VarChar(255)
+  MobileNumber      String?  @db.Char(10)
+  EmailAddress      String?  @db.VarChar(255)
+  AnnualIncome      BigInt?
+  Designation       String?  @db.VarChar(255)
+  PANNumber         String?  @db.VarChar(50)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@unique([STUDENT_MASTER_ID, ParentType], map: "sp_unique")
+  @@index([STUDENT_MASTER_ID], map: "student_parent_student_master_id_foreign")
+}
+
+model STUDENT_RESULTS {
+  SESSION_MASTER_ID  Int
+  StudentRoll        BigInt
+  StudentName        String   @db.VarChar(255)
+  MAKAUT_COURSE_ID   Int
+  SEMESTER_MASTER_ID Int
+  ResultType         String   @db.VarChar(50)
+  Result             String?  @db.VarChar(50)
+  MAR                Decimal? @db.Decimal(10, 5)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([StudentRoll, SEMESTER_MASTER_ID, SESSION_MASTER_ID, ResultType], map: "stdntrslt_unique")
+  @@index([MAKAUT_COURSE_ID], map: "stdntrslt_makaut_course_id")
+  @@index([SEMESTER_MASTER_ID], map: "stdntrslt_semester_master_id")
+  @@index([SESSION_MASTER_ID], map: "stdntrslt_session_master_id")
+}
+
+model SUBJECT_MASTER {
+  ID                 Int      @id @default(autoincrement())
+  COURSE_MASTER_ID   Int
+  STREAM_MASTER_ID   Int
+  SEMESTER_MASTER_ID Int
+  Code               String   @db.VarChar(50)
+  Name               String   @db.VarChar(255)
+  SubjectType        String   @db.VarChar(255)
+  LastUpdatedBy      String   @db.VarChar(50)
+  LastUpdatedAt      DateTime @db.DateTime(0)
+
+  @@unique([Code, STREAM_MASTER_ID, SEMESTER_MASTER_ID, COURSE_MASTER_ID], map: "sbjctmstr_course_stream_semester_code_unique")
+  @@index([COURSE_MASTER_ID], map: "sbjctmstr_course_master_id")
+  @@index([SEMESTER_MASTER_ID], map: "sbjctmstr_semester_master_id")
+  @@index([STREAM_MASTER_ID], map: "sbjctmstr_stream_master_id")
+}
+
+model TASK_SCHEDULER {
+  ID                Int      @id @default(autoincrement())
+  REPORT_MASTER_ID  Int
+  SendEmail         Boolean  @default(false)
+  StartTime         DateTime @db.DateTime(0)
+  EndTime           DateTime @db.DateTime(0)
+  Repeat            Decimal  @db.Decimal(5, 2)
+  StopAfterComplete Boolean  @default(true)
+  Active            Boolean  @default(false)
+  LastUpdatedBy     String   @db.VarChar(50)
+  LastUpdatedAt     DateTime @db.DateTime(0)
+
+  @@index([REPORT_MASTER_ID], map: "ts_report_master_id_foreign")
+}
+
+model USER_ROLE {
+  USER_MASTER_ID Int
+  ReferenceTable String   @db.VarChar(255)
+  ROLE_MASTER_ID Int
+  LastUpdatedBy  String   @default("dbadmin") @db.VarChar(255)
+  LastUpdatedAt  DateTime @default(now()) @db.DateTime(0)
+
+  @@unique([USER_MASTER_ID, ROLE_MASTER_ID], map: "usrrl_unique")
+  @@index([ROLE_MASTER_ID], map: "usrrl_role_master_id")
+}
+
+model class_attendance_key {
+  RecordDate   DateTime @id @db.Date
+  SerialNumber Int
+}
+
+model EMPLOYEE_ATTENDANCE {
+  EMPLOYEE_MASTER_ID Int
+  InTime             DateTime        @db.DateTime(0)
+  OutTime            DateTime        @db.DateTime(0)
+  LastUpdatedBy      String          @db.VarChar(50)
+  LastUpdatedAt      DateTime        @db.DateTime(0)
+  EMPLOYEE_MASTER    EMPLOYEE_MASTER @relation(fields: [EMPLOYEE_MASTER_ID], references: [ID], onDelete: NoAction, onUpdate: NoAction, map: "ea_employee_master")
+
+  @@unique([EMPLOYEE_MASTER_ID, InTime], map: "unique")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

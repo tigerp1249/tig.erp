@@ -10,7 +10,8 @@ import {
   addExperienceHandler,
   addEducationHandler,
   addAccoladeHandler,
-  bulkOnboardStaffHandler
+  bulkOnboardStaffHandler,
+  searchStaffHandler // The new handler for searching
 } from './staff.controller';
 
 const router = Router();
@@ -18,15 +19,16 @@ const router = Router();
 // Configure Multer to handle file uploads in memory
 const upload = multer({ storage: multer.memoryStorage() });
 
-// --- Core Admin Routes ---
+// --- Core Staff Routes ---
 router.post('/', onboardStaffHandler);
 router.get('/', getAllStaffHandler);
+router.get('/search', searchStaffHandler); // New flexible search route
 router.get('/:staffId', getStaffByIdHandler);
 router.put('/:staffId', updateStaffHandler);
 router.delete('/:staffId', softDeleteStaffHandler);
 router.post('/:staffId/reactivate', reactivateStaffHandler);
 
-// --- Employee Self-Service Routes ---
+// --- Nested Profile Routes ---
 router.post('/:staffId/experience', addExperienceHandler);
 router.post('/:staffId/education', addEducationHandler);
 router.post('/:staffId/accolade', addAccoladeHandler);
@@ -38,4 +40,4 @@ router.post(
     bulkOnboardStaffHandler
 );
 
-export { router };
+export { router as staffRouter };

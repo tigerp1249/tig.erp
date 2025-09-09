@@ -9,16 +9,16 @@ import {
   addExperience,
   addEducation,
   addAccolade,
-  bulkOnboardStaff
+  bulkOnboardStaff,
+  searchStaff // The new service for searching
 } from './staff.service';
 
 /**
- * Handles the creation of a new staff member profile.
+ * Handles the creation of a new staff member.
  */
 export async function onboardStaffHandler(req: Request, res: Response) {
   try {
-    const staffData = req.body;
-    const newStaffProfile = await onboardStaff(staffData);
+    const newStaffProfile = await onboardStaff(req.body);
     return res.status(201).json(newStaffProfile);
   } catch (error: any) {
     console.error('Onboarding failed:', error);
@@ -61,6 +61,46 @@ export async function getStaffByIdHandler(req: Request, res: Response) {
 }
 
 /**
+ * Handles searching for staff based on various query parameters.
+ */
+// in staff.controller.ts
+
+/**
+ * Handles searching for staff based on various query parameters.
+ */
+export async function searchStaffHandler(req: Request, res: Response) {
+  try {
+    const { id, email, phone, name } = req.query;
+
+    if (!id && !email && !phone && !name) {
+      return res.status(400).json({ message: 'At least one search parameter (id, email, phone, or name) is required.' });
+    }
+
+    const criteria = {
+      id: id ? parseInt(id as string, 10) : undefined,
+      email: email as string | undefined,
+      phone: phone as string | undefined,
+      name: name as string | undefined,
+    };
+
+    const results = await searchStaff(criteria);
+
+    // This is the check that was missing.
+    // If the results array is empty, return 404.
+    if (!results || results.length === 0) {
+      return res.status(404).json({ message: 'No staff members found matching your criteria.' });
+    }
+
+    // Otherwise, return the results with 200 OK.
+    return res.status(200).json(results);
+    
+  } catch (error: any) {
+    console.error(`Failed to search staff:`, error);
+    return res.status(500).json({ message: 'Failed to retrieve staff', error: error.message });
+  }
+}
+
+/**
  * Handles updating a staff member's profile.
  */
 export async function updateStaffHandler(req: Request, res: Response) {
@@ -69,9 +109,7 @@ export async function updateStaffHandler(req: Request, res: Response) {
     if (isNaN(staffId)) {
       return res.status(400).json({ message: 'Invalid staff ID.' });
     }
-
-    const updateData = req.body;
-    const updatedStaff = await updateStaff(staffId, updateData);
+    const updatedStaff = await updateStaff(staffId, req.body);
     return res.status(200).json(updatedStaff);
   } catch (error: any) {
     if (error.message.includes('not found')) {
@@ -80,7 +118,6 @@ export async function updateStaffHandler(req: Request, res: Response) {
     console.error(`Failed to update staff ${req.params.staffId}:`, error);
     return res.status(500).json({ message: 'Failed to update staff member', error: error.message });
   }
-  
 }
 
 /**
@@ -95,9 +132,6 @@ export async function softDeleteStaffHandler(req: Request, res: Response) {
     await deactivateStaff(staffId);
     return res.status(200).json({ message: 'Staff member deactivated successfully.' });
   } catch (error: any) {
-    if (error.message.includes('not found')) {
-      return res.status(404).json({ message: error.message });
-    }
     return res.status(500).json({ message: 'Failed to deactivate staff member', error: error.message });
   }
 }
@@ -114,15 +148,12 @@ export async function reactivateStaffHandler(req: Request, res: Response) {
     const reactivatedStaff = await reactivateStaff(staffId);
     return res.status(200).json(reactivatedStaff);
   } catch (error: any) {
-    if (error.message.includes('not found')) {
-      return res.status(404).json({ message: error.message });
-    }
     return res.status(500).json({ message: 'Failed to reactivate staff member', error: error.message });
   }
 }
 
 /**
- * Handles adding a work experience record to a staff member's profile.
+ * Handles adding a work experience record.
  */
 export async function addExperienceHandler(req: Request, res: Response) {
     try {
@@ -138,7 +169,7 @@ export async function addExperienceHandler(req: Request, res: Response) {
 }
 
 /**
- * Handles adding an education record to a staff member's profile.
+ * Handles adding an education record.
  */
 export async function addEducationHandler(req: Request, res: Response) {
     try {
@@ -154,7 +185,7 @@ export async function addEducationHandler(req: Request, res: Response) {
 }
 
 /**
- * Handles adding an accolade record to a staff member's profile.
+ * Handles adding an accolade record.
  */
 export async function addAccoladeHandler(req: Request, res: Response) {
     try {
