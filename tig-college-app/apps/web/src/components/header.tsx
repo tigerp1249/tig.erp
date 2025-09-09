@@ -1,4 +1,10 @@
-export function Header({ title }) {
+""
+
+interface HeaderProps {
+  title: string
+}
+
+export function Header({ title }: HeaderProps) {
   return (
     <header
       className="bg-primary border-b border-red-600 px-6 py-4 flex items-center justify-between shadow-lg relative z-10 mt-4 ml-4 rounded-lg"
