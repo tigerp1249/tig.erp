@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
-
+import Logo from "@/assets/logo-tigps.png"
 const navigationItems = [
   { href: "/", icon: "fa-solid fa-table-columns", label: "Dashboard" },
   { href: "/attendance", icon: "fa-solid fa-clipboard-user", label: "My Attendance" },
@@ -24,7 +24,7 @@ export function Sidebar() {
       {/* Logo Section */}
       <div className="logo flex justify-center py-6">
         <img
-          src="/images/logo-tigps.png"
+          src={Logo}
           alt="TECHNO INDIA GROUP"
           width={120}
           height={120}

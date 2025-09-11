@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNavigate } from "react-router-dom"
+import logo from "@/assets/logo-tigps.png";
+import universityLogo from "@/assets/university-campus.png";
+
 
 export default function LoginPage() {
   const [isOtpSent, setIsOtpSent] = useState(false)
@@ -43,7 +46,7 @@ export default function LoginPage() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/university-campus.png')",
+            backgroundImage: `url(${universityLogo})`,
           filter: "blur(8px)",
           transform: "scale(1.1)",
         }}
@@ -61,7 +64,7 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="relative z-20 mt-16 mb-8">
         <img
-          src="/images/logo-tigps.png"
+ src={logo} 
           alt="TECHNO INDIA GROUP"
           width={150}
           height={150}

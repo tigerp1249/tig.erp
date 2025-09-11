@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+
+@layer utilities {
+  .text-primary {
+    color: rgb(230, 0, 0);
+  }
+  .bg-primary {
+    background-color: rgb(230, 0, 0);
+  }
+}

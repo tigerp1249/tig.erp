@@ -7,13 +7,13 @@ interface HeaderProps {
 export function Header({ title }: HeaderProps) {
   return (
     <header
-      className="bg-primary border-b border-red-600 px-6 py-4 flex items-center justify-between shadow-lg relative z-10 mt-4 ml-4 rounded-lg"
+      className=" sticky top-0 left-o top-0 bg-primary border-b border-red-600 px-6 py-4 flex items-center justify-between shadow-lg relative z-10 mt-4 ml-4 rounded-lg"
       style={{
         boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
         backgroundColor: "rgb(230, 0, 0)",
       }}
     >
-      <h1 className="text-2xl font-bold text-white">{title}</h1>
+      <h1 className="text-2xl font-bold text-white">Techno India Group</h1>
 
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
