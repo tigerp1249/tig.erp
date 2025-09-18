@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { protect } from '../../middleware/auth.middleware'; // Import the middleware
+
 import multer from 'multer';
 import { 
   onboardStaffHandler,
@@ -11,18 +13,25 @@ import {
   addEducationHandler,
   addAccoladeHandler,
   bulkOnboardStaffHandler,
-  searchStaffHandler // The new handler for searching
+  searchStaffHandler,
+  getInactiveStaffHandler ,
+  getSelfProfileHandler
+  // 
 } from './staff.controller';
 
 const router = Router();
 
-// Configure Multer to handle file uploads in memory
+router.use(protect);
+
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 // --- Core Staff Routes ---
+router.get('/me', getSelfProfileHandler); //  route for a user to get their own profile
 router.post('/', onboardStaffHandler);
 router.get('/', getAllStaffHandler);
-router.get('/search', searchStaffHandler); // New flexible search route
+router.get('/search', searchStaffHandler); 
+router.get('/status/inactive', getInactiveStaffHandler); //  route for inactive staff
 router.get('/:staffId', getStaffByIdHandler);
 router.put('/:staffId', updateStaffHandler);
 router.delete('/:staffId', softDeleteStaffHandler);

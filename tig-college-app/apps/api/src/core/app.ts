@@ -3,10 +3,11 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import { router as authRoutes } from "../api/auth/auth.routes";
 
 import { staffRouter as staffRoutes } from "../api/staff/staff.routes";
 import { router as approvalRoutes } from "../api/approvals/approvals.routes";
-// REMOVED: No longer need to import experienceRoutes
+
 
 export const createApp = () => {
   const app = express();
@@ -22,7 +23,8 @@ export const createApp = () => {
   // API Routes
   app.use("/api/v1/staff", staffRoutes);
   app.use("/api/v1/approvals", approvalRoutes);
-  // REMOVED: No longer need to use experienceRoutes
+app.use("/api/v1/auth", authRoutes); 
+
 
   // 404
   app.use((_req, res) => res.status(404).json({ error: "Not found" }));
